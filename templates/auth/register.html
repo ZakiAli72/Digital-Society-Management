@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Register - Digital Society Management{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <div class="mx-auto h-20 w-20 bg-primary-600 rounded-full flex items-center justify-center">
+                <i class="fas fa-building text-white text-2xl"></i>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-slate-100">
+                Create society account
+            </h2>
+            <p class="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
+                Or
+                <a href="{{ url_for('auth.login') }}" class="font-medium text-primary-600 hover:text-primary-500">
+                    sign in to your existing account
+                </a>
+            </p>
+        </div>
+        
+        <form class="mt-8 space-y-6" method="POST" id="register-form">
+            <div class="space-y-4">
+                <div>
+                    <label for="society_name" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Society Name *
+                    </label>
+                    <input id="society_name" name="society_name" type="text" required
+                           class="mt-1 block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-slate-700 dark:text-slate-100"
+                           placeholder="e.g., Green Valley Apartments">
+                    <div id="society_name_error" class="hidden text-sm text-red-600 mt-1"></div>
+                </div>
+                
+                <div>
+                    <label for="registration_number" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Registration Number *
+                    </label>
+                    <input id="registration_number" name="registration_number" type="text" required
+                           class="mt-1 block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-slate-700 dark:text-slate-100"
+                           placeholder="e.g., REG/2023/001">
+                    <div id="registration_number_error" class="hidden text-sm text-red-600 mt-1"></div>
+                </div>
+                
+                <div>
+                    <label for="registration_year" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Registration Year *
+                    </label>
+                    <input id="registration_year" name="registration_year" type="number" min="1900" max="2030" required
+                           class="mt-1 block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-slate-700 dark:text-slate-100"
+                           value="2024">
+                </div>
+                
+                <div>
+                    <label for="email" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Email Address *
+                    </label>
+                    <input id="email" name="email" type="email" autocomplete="email" required
+                           class="mt-1 block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-slate-700 dark:text-slate-100"
+                           placeholder="admin@yoursociety.com">
+                    <div id="email_error" class="hidden text-sm text-red-600 mt-1"></div>
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Password *
+                    </label>
+                    <input id="password" name="password" type="password" autocomplete="new-password" required
+                           class="mt-1 block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-slate-700 dark:text-slate-100"
+                           placeholder="Minimum 6 characters">
+                    <div id="password_error" class="hidden text-sm text-red-600 mt-1"></div>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" id="register-btn"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <i class="fas fa-user-plus text-primary-500 group-hover:text-primary-400"></i>
+                    </span>
+                    <span id="register-btn-text">Create Account</span>
+                    <div id="register-spinner" class="hidden animate-spin ml-2">
+                        <i class="fas fa-spinner"></i>
+                    </div>
+                </button>
+            </div>
+            
+            <div class="text-center">
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    By creating an account, you agree to manage your society responsibly and securely.
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Real-time validation
+document.getElementById('society_name').addEventListener('blur', function() {
+    const name = this.value.trim();
+    if (name) {
+        fetch(`{{ url_for('auth.check_society_name') }}?name=${encodeURIComponent(name)}`)
+        .then(response => response.json())
+        .then(data => {
+            const errorEl = document.getElementById('society_name_error');
+            if (data.exists) {
+                errorEl.textContent = 'A society with this name already exists';
+                errorEl.classList.remove('hidden');
+                this.classList.add('border-red-500');
+            } else {
+                errorEl.classList.add('hidden');
+                this.classList.remove('border-red-500');
+            }
+        });
+    }
+});
+
+document.getElementById('registration_number').addEventListener('blur', function() {
+    const regNumber = this.value.trim();
+    if (regNumber) {
+        fetch(`{{ url_for('auth.check_registration_number') }}?registration_number=${encodeURIComponent(regNumber)}`)
+        .then(response => response.json())
+        .then(data => {
+            const errorEl = document.getElementById('registration_number_error');
+            if (data.exists) {
+                errorEl.textContent = 'A society with this registration number already exists';
+                errorEl.classList.remove('hidden');
+                this.classList.add('border-red-500');
+            } else {
+                errorEl.classList.add('hidden');
+                this.classList.remove('border-red-500');
+            }
+        });
+    }
+});
+
+document.getElementById('register-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const registerBtn = document.getElementById('register-btn');
+    const registerBtnText = document.getElementById('register-btn-text');
+    const registerSpinner = document.getElementById('register-spinner');
+    
+    // Show loading state
+    registerBtn.disabled = true;
+    registerBtnText.textContent = 'Creating Account...';
+    registerSpinner.classList.remove('hidden');
+    
+    const formData = new FormData(this);
+    
+    fetch('{{ url_for("auth.register") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            society_name: formData.get('society_name'),
+            registration_number: formData.get('registration_number'),
+            registration_year: formData.get('registration_year'),
+            email: formData.get('email'),
+            password: formData.get('password')
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message || 'Account created successfully!', 'success');
+            setTimeout(() => {
+                window.location.href = data.redirect;
+            }, 1000);
+        } else {
+            if (data.errors) {
+                data.errors.forEach(error => showToast(error, 'error'));
+            } else {
+                showToast(data.message || 'Registration failed', 'error');
+            }
+            // Reset button state
+            registerBtn.disabled = false;
+            registerBtnText.textContent = 'Create Account';
+            registerSpinner.classList.add('hidden');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('An error occurred. Please try again.', 'error');
+        // Reset button state
+        registerBtn.disabled = false;
+        registerBtnText.textContent = 'Create Account';
+        registerSpinner.classList.add('hidden');
+    });
+});
+</script>
+{% endblock %}

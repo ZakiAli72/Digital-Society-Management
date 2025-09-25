@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Digital Society Management{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Welcome Section -->
+    <div class="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+            Welcome back, {{ current_user.email }}!
+        </h1>
+        <p class="text-slate-600 dark:text-slate-400">
+            Here's an overview of {{ society.name }} management.
+        </p>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="stats-card">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30">
+                    <i class="fas fa-users text-blue-600 dark:text-blue-400 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Total Members</p>
+                    <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ stats.total_members }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-card">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 dark:bg-green-900/30">
+                    <i class="fas fa-receipt text-green-600 dark:text-green-400 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Total Receipts</p>
+                    <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ stats.total_receipts }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-card">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 dark:bg-yellow-900/30">
+                    <i class="fas fa-dollar-sign text-yellow-600 dark:text-yellow-400 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Monthly Revenue</p>
+                    <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ format_currency(stats.monthly_revenue) }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-card">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-900/30">
+                    <i class="fas fa-chart-line text-purple-600 dark:text-purple-400 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Total Revenue</p>
+                    <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ format_currency(stats.total_revenue) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="{{ url_for('members.add_member') }}" 
+               class="flex flex-col items-center p-4 bg-slate-50 dark:bg-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
+                <i class="fas fa-user-plus text-2xl text-primary-600 dark:text-primary-400 mb-2"></i>
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 text-center">Add Member</span>
+            </a>
+            
+            <a href="{{ url_for('receipts.generate_receipt') }}" 
+               class="flex flex-col items-center p-4 bg-slate-50 dark:bg-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
+                <i class="fas fa-plus-circle text-2xl text-primary-600 dark:text-primary-400 mb-2"></i>
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 text-center">Generate Receipt</span>
+            </a>
+            
+            <a href="{{ url_for('receipts.bulk_generate') }}" 
+               class="flex flex-col items-center p-4 bg-slate-50 dark:bg-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
+                <i class="fas fa-copy text-2xl text-primary-600 dark:text-primary-400 mb-2"></i>
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 text-center">Bulk Generate</span>
+            </a>
+            
+            <a href="{{ url_for('societies.profile') }}" 
+               class="flex flex-col items-center p-4 bg-slate-50 dark:bg-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
+                <i class="fas fa-building text-2xl text-primary-600 dark:text-primary-400 mb-2"></i>
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 text-center">Society Profile</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Members -->
+        <div class="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Recent Members</h2>
+                <a href="{{ url_for('members.list_members') }}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                    View All
+                </a>
+            </div>
+            
+            {% if recent_members %}
+                <div class="space-y-3">
+                    {% for member in recent_members %}
+                    <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                        <div>
+                            <p class="font-medium text-slate-900 dark:text-slate-100">{{ member.name }}</p>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">{{ member.building }} - {{ member.apartment }}</p>
+                        </div>
+                        <span class="text-xs text-slate-500 dark:text-slate-400">
+                            {{ format_date(member.created_at) }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-slate-500 dark:text-slate-400 text-center py-8">No members added yet.</p>
+            {% endif %}
+        </div>
+        
+        <!-- Recent Receipts -->
+        <div class="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Recent Receipts</h2>
+                <a href="{{ url_for('receipts.list_receipts') }}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                    View All
+                </a>
+            </div>
+            
+            {% if recent_receipts %}
+                <div class="space-y-3">
+                    {% for receipt in recent_receipts %}
+                    <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                        <div>
+                            <p class="font-medium text-slate-900 dark:text-slate-100">
+                                Receipt #{{ '%04d'|format(receipt.receipt_number) }}
+                            </p>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">{{ receipt.member.name if receipt.member else 'Unknown Member' }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-medium text-slate-900 dark:text-slate-100">{{ format_currency(receipt.total_amount) }}</p>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">{{ format_date(receipt.date) }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-slate-500 dark:text-slate-400 text-center py-8">No receipts generated yet.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Pending Dues Alert -->
+    {% if stats.pending_dues_count > 0 %}
+    <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-6">
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-triangle text-yellow-600 dark:text-yellow-400 text-xl mr-4"></i>
+            <div>
+                <h3 class="text-lg font-semibold text-yellow-800 dark:text-yellow-300">Pending Dues Alert</h3>
+                <p class="text-yellow-700 dark:text-yellow-400">
+                    {{ stats.pending_dues_count }} member(s) have pending dues. 
+                    <a href="{{ url_for('members.list_members') }}" class="font-medium underline hover:no-underline">
+                        Review members
+                    </a>
+                    to generate receipts.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
