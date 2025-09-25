@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Login - Digital Society Management{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <div class="mx-auto h-20 w-20 bg-primary-600 rounded-full flex items-center justify-center">
+                <i class="fas fa-building text-white text-2xl"></i>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-slate-100">
+                Sign in to your account
+            </h2>
+            <p class="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
+                Or
+                <a href="{{ url_for('auth.register') }}" class="font-medium text-primary-600 hover:text-primary-500">
+                    create a new society account
+                </a>
+            </p>
+        </div>
+        
+        <form class="mt-8 space-y-6" method="POST" id="login-form">
+            <div class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Email address
+                    </label>
+                    <input id="email" name="email" type="email" autocomplete="email" required
+                           class="mt-1 block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-slate-700 dark:text-slate-100">
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Password
+                    </label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required
+                           class="mt-1 block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-slate-700 dark:text-slate-100">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="text-sm">
+                    <a href="{{ url_for('auth.forgot_password') }}" class="font-medium text-primary-600 hover:text-primary-500">
+                        Forgot your password?
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" id="login-btn"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <i class="fas fa-sign-in-alt text-primary-500 group-hover:text-primary-400"></i>
+                    </span>
+                    <span id="login-btn-text">Sign in</span>
+                    <div id="login-spinner" class="hidden animate-spin ml-2">
+                        <i class="fas fa-spinner"></i>
+                    </div>
+                </button>
+            </div>
+            
+            <div class="text-center">
+                <p class="text-sm text-slate-600 dark:text-slate-400">
+                    Demo credentials: <br>
+                    <strong>Super Admin:</strong> admin@gmail.com / password
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const loginBtn = document.getElementById('login-btn');
+    const loginBtnText = document.getElementById('login-btn-text');
+    const loginSpinner = document.getElementById('login-spinner');
+    
+    // Show loading state
+    loginBtn.disabled = true;
+    loginBtnText.textContent = 'Signing in...';
+    loginSpinner.classList.remove('hidden');
+    
+    const formData = new FormData(this);
+    
+    fetch('{{ url_for("auth.login") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            email: formData.get('email'),
+            password: formData.get('password')
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect;
+        } else {
+            showToast(data.message || 'Login failed', 'error');
+            // Reset button state
+            loginBtn.disabled = false;
+            loginBtnText.textContent = 'Sign in';
+            loginSpinner.classList.add('hidden');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('An error occurred. Please try again.', 'error');
+        // Reset button state
+        loginBtn.disabled = false;
+        loginBtnText.textContent = 'Sign in';
+        loginSpinner.classList.add('hidden');
+    });
+});
+</script>
+{% endblock %}
